@@ -2,7 +2,7 @@
 macOS swiftUI manager window's life cycle
 
 ### Usage
-```
+```swift
 // open DocumentsView
 WindowUtil.makeWindow(MyDocumentsView.self, viewType: .document)
 
