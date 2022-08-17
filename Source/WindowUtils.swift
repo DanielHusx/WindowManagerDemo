@@ -85,9 +85,10 @@ extension WindowUtil {
     /// - attention: 使用此方式创建的window，swiftui关于导航栏的设置代码将失效
     public class func makeWindow<T>(_ view: T,
                                     allowMultiple: Bool = false,
+                                    title: String? = nil,
                                     size: NSSize = NSSize(width: 800, height: 600),
                                     styleMask: NSWindow.StyleMask = [.titled, .closable, .miniaturizable, .resizable]) where T: View {
-        WindowUtil.shared.makeWindow(view, allowMultiple: allowMultiple, size: size, styleMask: styleMask)
+        WindowUtil.shared.makeWindow(view, allowMultiple: allowMultiple, title: title, size: size, styleMask: styleMask)
     }
     
     /// 通过视图类型创建视图
@@ -116,10 +117,11 @@ extension WindowUtil {
     /// 视图构建Window并响应
     private func makeWindow<T>(_ view: T,
                                allowMultiple: Bool,
+                               title: String?,
                                size: NSSize,
                                styleMask: NSWindow.StyleMask) where T: View {
         // 代码创建窗口
-        let windowRef = window(view, allowMultiple: allowMultiple, size: size, styleMask: styleMask)
+        let windowRef = window(view, allowMultiple: allowMultiple, title: title, size: size, styleMask: styleMask)
         
         guard !windowRef.isKeyWindow else { return }
         windowRef.makeKeyAndOrderFront(nil)
@@ -129,6 +131,7 @@ extension WindowUtil {
     /// 视图构建window策略
     private func window<T>(_ view: T,
                            allowMultiple: Bool,
+                           title: String?,
                            size: NSSize,
                            styleMask: NSWindow.StyleMask) -> Window where T: View {
         let identifier = identifier(view.self)
@@ -148,6 +151,7 @@ extension WindowUtil {
         windowRef.setContentSize(size)
         windowRef.center()
         
+        if let title = title { windowRef.title = title }
         if !allowMultiple { append(windowRef, identifier: identifier) }
         
         return windowRef
@@ -253,6 +257,8 @@ extension WindowUtil {
 }
 
 extension View {
+    /// 定义扩展匹配标识
+    /// - attention: 视图名称不可存在包含关系，比如:  `Main`, `MainView`。一旦存在包含关系，在使用open的方式打开`Main`时，有可能打开`MainView`
     static var externalEventsMatching: Set<String> {
         Set(arrayLiteral: String(describing: type(of: self)))
     }
@@ -267,14 +273,14 @@ extension Scene {
 
 extension View {
     /// 标识View以防重复创建同一视图
-    func handlesExternal(viewType: WindowUtil.ViewType = .default, allowing: Set<String> = Set(arrayLiteral: "*")) -> some View {
+    func handlesExternal(allowing: Set<String> = Set(arrayLiteral: "*")) -> some View {
         handlesExternalEvents(preferring: Self.externalEventsMatching, allowing: allowing)
-            .windowModifier(viewType)
+            .windowModifier()
     }
 
     /// 对视图简易管理window
-    func windowModifier(_ viewType: WindowUtil.ViewType) -> some View {
-        modifier(WindowUtil.HostingWindowViewModifier(view: Self.self, viewType: viewType))
+    func windowModifier() -> some View {
+        modifier(WindowUtil.HostingWindowViewModifier(view: Self.self))
     }
 
 }
@@ -283,7 +289,6 @@ extension WindowUtil {
     /// 对视图简易管理window
     struct HostingWindowViewModifier<T>: ViewModifier where T: View {
         let view: T.Type
-        let viewType: WindowUtil.ViewType
 
         func body(content: Content) -> some View {
             ZStack {

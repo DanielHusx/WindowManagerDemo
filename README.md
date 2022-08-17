@@ -26,15 +26,17 @@ WindowGroup {
 DocumentGroup(newDocument: MyDocuments()) { file in
     MyDocumentsView()
         .environmentObject(file.document)
-        .handlesExternal(viewType: .document)
+        .handlesExternal()
 }
 .handlesExternal(MyDocumentsView.self)
 
 
 Settings {
     SettingsView()
-        .handlesExternal(viewType: .setting)
+        .handlesExternal()
 }
 .handlesExternal(SettingsView.self)
 
 ```
+
+![demo](demo.png)

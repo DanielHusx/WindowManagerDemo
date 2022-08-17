@@ -47,11 +47,11 @@ struct MainView: View {
             }
             
             Button("create Unique View") {
-                WindowUtil.makeWindow(UniqueView())
+                WindowUtil.makeWindow(UniqueView(), title: "Unique Title")
             }
             
             Button("create Multi View") {
-                WindowUtil.makeWindow(MultiView(), allowMultiple: true)
+                WindowUtil.makeWindow(MultiView(), allowMultiple: true, title: "Multi Title")
             }
         }
         .padding(50)

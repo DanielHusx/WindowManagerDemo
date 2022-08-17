@@ -38,6 +38,7 @@ struct MultiView: View {
     var body: some View {
         Text("Multiple View")
             .commonConfig()
+            .navigationTitle("Multi") // invalid
     }
 }
 
