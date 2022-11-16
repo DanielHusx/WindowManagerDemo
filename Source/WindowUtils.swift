@@ -40,7 +40,7 @@ public class WindowUtil: NSObject, ObservableObject {
     typealias Window = NSWindow
     
     /// 私有初始化方法
-    private override init() {}
+    private override init() { super.init(); addNotifications() }
     private static let shared = WindowUtil()
     
     /// 窗口缓存池 view name : Window
@@ -59,7 +59,7 @@ public class WindowUtil: NSObject, ObservableObject {
 }
 
 
-// MARK: - NSWindowDelegate窗口代理
+// MARK: - NSWindowDelegate窗口代理 - 通知
 extension WindowUtil: NSWindowDelegate {
     public func windowWillClose(_ notification: Notification) {
         guard let window = notification.object as? Window else { return }
@@ -68,6 +68,19 @@ extension WindowUtil: NSWindowDelegate {
     
     public func windowDidBecomeKey(_ notification: Notification) {
         // do something...
+    }
+}
+
+extension WindowUtil {
+    /// 添加通知
+    private func addNotifications() {
+        // NOTE: 给Window设置delegate即便是nil也会造成内存泄漏，唯有通过监听通知才不会
+        NotificationCenter.default.addObserver(forName: Window.willCloseNotification,
+                                               object: nil,
+                                               queue: nil) { [weak self] sender in
+            guard let window = sender.object as? Window else { return }
+            self?.remove(window)
+        }
     }
 }
 
@@ -192,13 +205,11 @@ extension WindowUtil {
     /// 添加缓存
     private func append<T>(_ window: Window, view: T.Type = T.self) where T: View {
         let identifier = identifier(view.self)
-        window.delegate = self
         windows[identifier] = window
     }
     
     /// 添加缓存
     private func append(_ window: Window, identifier: String) {
-        window.delegate = self
         windows[identifier] = window
     }
     
